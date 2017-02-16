@@ -42,7 +42,7 @@ now<- lapply(answerList, function(df) colMeans(as.data.frame(df)[,3:563]))
 answerDataFrame<- as.data.frame(now)
 
 #final file writting
-write.table(answerDataFrame, file = "foo.txt")
+write.table(answerDataFrame, file = "foo.txt", row.name=FALSE)
 
 #End of Code
 
