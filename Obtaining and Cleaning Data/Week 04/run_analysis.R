@@ -30,7 +30,7 @@ finalDataSet$Task[finalDataSet$Task == "5"] <- "STANDING"
 finalDataSet$Task[finalDataSet$Task == "6"] <- "LAYING"
 
 #extracting measurements on mean only
-meanData<- finalDataSet[grepl("mean", colnames(finalDataSet))]
+meanData<- finalDataSet[grepl("mean", colnames(finalDataSet)) | grepl("std", colnames(finalDataSet))]
 
 #splitting to different Subject+Activity combinations
 answerList <- split(finalDataSet, list(finalDataSet$Subject, finalDataSet$Task))
