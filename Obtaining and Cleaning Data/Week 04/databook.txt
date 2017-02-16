@@ -1,8 +1,0 @@
-"tbodyGyro-sma()" 	Laying			subjects 1-30 		average
-			Sitting 		subjects 1-30 		average
-			Standing		subjects 1-30 		average
-			Walking			subjects 1-30 		average
-			Walking Downstairs	subjects 1-30 		average
-			Walking Upstairs	subjects 1-30 		average
-
-x561
