@@ -16,12 +16,9 @@ finalDataSet<- rbind(trainFinal,testFinal)
 
 # Giving menaingful coloumn names
 featureVector<- as.vector(features[,2])
-featureVector<- append(featureVector, "Subject", after=0)
-featureVector<-append(featureVector, "Task", after=1)
+featureVector<- append(featureVector, "Subject ID", after=0)
+featureVector<-append(featureVector, "Activity", after=1)
 colnames(finalDataSet)<- featureVector
-
-#extracting measurements on mean only
-meanData<- finalDataSet[grepl("mean", colnames(finalDataSet))]
 
 #giving meaningful variable names
 finalDataSet$Task<-as.character(finalDataSet$Task)
@@ -31,6 +28,9 @@ finalDataSet$Task[finalDataSet$Task == "3"] <- "WALKING_DOWNSTAIRS"
 finalDataSet$Task[finalDataSet$Task == "4"] <- "SITTING"
 finalDataSet$Task[finalDataSet$Task == "5"] <- "STANDING"
 finalDataSet$Task[finalDataSet$Task == "6"] <- "LAYING"
+
+#extracting measurements on mean only
+meanData<- finalDataSet[grepl("mean", colnames(finalDataSet))]
 
 #splitting to different Subject+Activity combinations
 answerList <- split(finalDataSet, list(finalDataSet$Subject, finalDataSet$Task))
