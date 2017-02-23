@@ -9,9 +9,9 @@ features<- read.table("features.txt")
 
 #mearging datasets
 testTemp<- cbind(testSubject,testLabel)
-testFinal<- cbind(testTemp,testData)
+testFinal<- cbind(testTemp,test)
 trainTemp<- cbind(trainSubject,trainLabel)
-trainFinal<- cbind(trainTemp,trainData)
+trainFinal<- cbind(trainTemp,train)
 finalDataSet<- rbind(trainFinal,testFinal)
 
 # Giving menaingful coloumn names
@@ -42,7 +42,7 @@ now<- lapply(answerList, function(df) colMeans(as.data.frame(df)[,3:563]))
 answerDataFrame<- as.data.frame(now)
 
 #final file writting
-write.table(answerDataFrame, file = "ansData.txt", row.name=FALSE, sep = "\t")
+write.table(answerDataFrame, file = "foo.txt")
 
 #End of Code
 
