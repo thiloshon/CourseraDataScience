@@ -57,7 +57,7 @@ The activity numbers (1..6) were replaced with meaningful activity names.
 Measurements only in the mean and standard deviation were taken and stored in the variable meanData.
 Here mean data is any column with the name mean or std(standard deviation) in it. it can be at the beginning or middle of the name of reading.
 --
-To get the average of each activity of each subject, the masterDataSet was first subsetted into different combinations (180 combinations) of SubjectID + Activity pairs using spilt function.
+To get the average of each activity of each subject, the meanDataSet was first subsetted into different combinations (180 combinations) of SubjectID + Activity pairs using spilt function.
 
 using lapply the average was found for each combinations.
 
