@@ -1,0 +1,180 @@
+---
+title: "Untitled"
+author: "Thiloshon Nagarajah"
+date: "4/21/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## Overview
+
+```{r}
+set.seed(1)
+library(ggplot2)
+expmns = NULL
+```
+
+Creating a distribution of averages of 40 exponentials of size 1000
+```{r}
+for (i in 1 : 1000) expmns = c(expmns, mean(rexp(40,0.2)))
+
+```
+
+Plotting the histogram of the distribution
+```{r}
+g <- ggplot(as.data.frame(expmns), aes(x = expmns))
+g <- g + geom_histogram(fill = "salmon", aes(y = ..density..), colour = "black") 
+g <- g + geom_vline(xintercept = 5, colour="red")+ geom_vline(xintercept = mean(expmns), colour = "blue")
+g <- g + geom_density(size = 2)
+
+```
+
+Check the Graph 01 
+
+## 1. Show the sample mean and compare it to the theoretical mean of the distribution.
+
+The theoretical mean is drawn as a vertical line in red and the sample mean is drawn in blue in the ablove plot. But the lines are overlapping as both values are pretty much same. To be precise lets get the mean of exponential distribution from (1/rate parameter).
+
+```{r}
+1/0.2
+```
+And also get the mean of the generated exponential.
+```{r}
+mean(expmns)
+```
+This shows the mean of the sample and theoretical mean are both very much same.
+
+## 2. Show how variable the sample is (via variance) and compare it to the theoretical variance of the distribution.
+
+The theoretical varience of exponential distribution is given by,
+```{r}
+
+((1/0.2)/sqrt(40))^2
+```
+whereas the variance of the generated exponential is given by,
+
+```{r}
+var(expmns)
+
+```
+
+We can conclude both varience are very much similar.
+
+## Show that the distribution is approximately normal.
+
+From the initial plot, the density line shows how the plot is slightly left skewed. But it is approximately normal.
+
+To better analyce the CLT, lets create distribution of a large collection of random exponentials and compare with a plot of distribution of a large collection of averages of 40 exponentials.
+
+Plot of distribution of a large collection of random exponentials
+```{r, echo=TRUE}
+
+two<-NULL
+for (i in 1 : 1000) two = c(two, rexp(40,0.2))
+
+g <- ggplot(as.data.frame(two), aes(x = two))
+g <- g + geom_histogram(fill = "salmon", aes(y = ..density..), colour = "black") 
+g <- g  + geom_vline(xintercept = mean(two), colour = "blue")
+g <- g + geom_density(size = 2)
+
+
+```
+
+Check the Graph 02
+
+Plot of distribution of a large collection of averages of 40 exponentials.
+```{r}
+largemns<-NULL
+for (i in 1 : 10000) largemns = c(largemns, mean(rexp(40,0.2)))
+g <- ggplot(as.data.frame(largemns), aes(x = largemns))
+g <- g + geom_histogram(fill = "salmon", aes(y = ..density..), colour = "black") 
+g <- g + geom_vline(xintercept = 5, colour="red")+ geom_vline(xintercept = mean(expmns), colour = "blue")
+g <- g + geom_density(size = 2)
+
+g
+```
+
+This demonstrates the Central Limit Theorem,distribution of averages of independent and identically distributed (IID) variables becomes that of a standard normal as the sample size increases  
+
+## ToothGrowth Analysis
+
+Basic Exploratory Analyses 
+
+```{r cars}
+library(ggplot2)
+f<-ToothGrowth
+ggplot(f,aes(supp,len))+facet_grid(.~dose)+geom_boxplot(aes(fill = supp))
+```
+
+Just in a glance we can see the dose is influenzing the growth of tooth. The 2 doses is significantly efficient than the 0.5 dosage. But the VC supp shows more efficiency in large doses than in small doses.
+
+Basic summary of data
+
+```{r}
+summary(f)
+```
+
+Hypothesis Tests
+
+Null Hypothesis 01: There is no difference in tooth growth when different supplements are used.
+Alternate Hypothesis of Null Hypothesis 01: There is more tooth growth when using supplement OJ than VC.
+
+```{r}
+OJData<- f[f$supp=="OJ",]
+VCData<- f[f$supp=="VC",]
+t.test(OJData$len , VCData$len, alternative = "greater", paired = FALSE, conf.level = 0.95)
+```
+
+We are getting a p-value of 0.03, this is smaller than the rejection p value 0.05. Thus we dont have enough power i.e we dont have enough evidence to reject the alternate hypothesis. This concludes the OJ shows more toothe growth than VC.
+
+Null Hypothesis 02: There is no difference in tooth growth when different dosages are used.
+Alternate Hypothesis of Null Hypothesis 02: There is more tooth growth when using dosage 2 than 0.5.
+
+
+```{r}
+OJData<- f[f$dose==0.5,]
+VCData<- f[f$dose==2,,]
+t.test(VCData$len , OJData$len, alternative = "greater", paired = FALSE, conf.level = 0.95)
+```
+
+Here, once again we are getting a p-value of less than 0.05. This shows its highly likely for the alternate hypothesis to be true, which is there is more tooth growth in dose of 2 than 0.5.
+
+
+Assumptions:
+
+The variables are independent and identically distributed (i.i.d.).
+The variables are not from corelated sample
+
+## Appendix
+
+Graph 01
+
+Plotting the histogram of the distribution
+```{r, echo=FALSE}
+g <- ggplot(as.data.frame(expmns), aes(x = expmns))
+g <- g + geom_histogram(fill = "salmon", aes(y = ..density..), colour = "black") 
+g <- g + geom_vline(xintercept = 5, colour="red")+ geom_vline(xintercept = mean(expmns), colour = "blue")
+g <- g + geom_density(size = 2)
+
+g
+```
+
+Graph 02
+
+Plot of distribution of a large collection of random exponentials
+```{r, echo=FALSE}
+
+two<-NULL
+for (i in 1 : 1000) two = c(two, rexp(40,0.2))
+
+g <- ggplot(as.data.frame(two), aes(x = two))
+g <- g + geom_histogram(fill = "salmon", aes(y = ..density..), colour = "black") 
+g <- g  + geom_vline(xintercept = mean(two), colour = "blue")
+g <- g + geom_density(size = 2)
+g
+
+```
