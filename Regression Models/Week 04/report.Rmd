@@ -1,0 +1,88 @@
+---
+title: "Analysis on Miles Per Gallon of Motor Cars"
+author: "Thiloshon Nagarajah"
+date: "4/25/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Synopsis
+
+This analysis explores the relationship between a set of variables and miles per gallon (MPG) (outcome) of motor cars. We are particularly interested in the following two questions:
+
+1.  “Is an automatic or manual transmission better for MPG?”
+2.  "Quantify the MPG difference between automatic and manual transmissions"
+
+## Exploratory Analysis
+
+```{r}
+cars<-mtcars
+library(ggplot2)
+ggplot(cars, aes(as.factor(am), mpg)) + geom_boxplot(aes(fill = as.factor(am))) 
+```
+
+From this plot we can get a rough idea the Transmission mode has correlation with MPG. But this is not enough to quantify or conclude this is the only correlation.
+
+## Analysis
+
+In order to quantify how correlated Transmission mode is, we need to first find what are the other variants that are correlated. To find that we can use correlation function. 
+
+```{r}
+correlation <-cor(cars$mpg, cars)
+order <- correlation[,order(abs(correlation), decreasing = T)]
+order
+```
+
+Now, lets select only the variables that are as or more correlated than Transmission mode.
+
+```{r}
+variates <- names(order)[1:8]
+relavantData<-cars[,names(cars) %in% variates]
+head(relavantData)
+```
+
+## Model Selection
+
+Now we have subsetted the data, lets fit a linear regression model.
+
+```{r}
+basicFit <- lm(mpg ~ am, relavantData)
+summary(basicFit)
+
+```
+
+Here the R-squared value is 35. So our besic fit only explains 35% of the varience. Lets model a multi variate regression.
+
+```{r}
+multiFit <- lm(mpg ~ ., relavantData)
+summary(multiFit)
+
+```
+
+Now, the R-squared value has increased significantly. 86% of the varience is explained in this model which is considerably good. This model shows the Transmission mode from automatic to manual has increased 1.96 MPG. 
+
+Lets also check the Residuals plots.
+
+```{r}
+par(mfrow = c(2,2))
+plot(multiFit)
+
+```
+
+The residuals show mostly homoskedastic behaviour, thus can conclude its a fairly good model. 
+
+## Summary
+
+The analysis is built one by one from basic exploratory analysis to get a rough idea to a fairly complex multivariate model with 86% variance explained by the choosen variates. The analysis answers the questions we had quantitatively.
+
+
+
+
+
+
+
+
+
