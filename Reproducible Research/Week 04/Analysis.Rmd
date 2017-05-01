@@ -1,0 +1,120 @@
+---
+title: "Analysis on harmful disasters in United States"
+author: "Thiloshon Nagarajah"
+date: "3/28/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE, cache=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Synopsis
+
+United States has a long history of facing deadliest and harmful weather histories. 
+It is utmost important to analyse the various weather conditions and take measures to face those efficiently.
+So it makes sense to identify the most harmful or deadliest weather conditions and priotize the remedies accordingly.
+We have analyzed the weather data and found out 10 most deadliest conditions in terms of population health and economic consequensces.
+The Tornado related conditions have the highest impact on human health resulting in 5633 fatalities and 91346 injuries.
+The Flood has made more property damage worth of 144657709807 USD and Drought has created more impact on crops with worth of 13972566000 USD.
+The findings are covered below in depth.
+
+## Processing
+
+The data was read into the workspace with normal **read.csv()** function. The library needed were added.
+
+```{r}
+library(ggplot2)
+strData <- read.csv("stormData.csv.bz2")
+```
+
+The read data was processed to make the proper value types, make the values consistant. 
+
+```{r}
+strData$EVTYPE <- as.character(strData$EVTYPE)
+strData$PROPDMGEXP<-as.factor(toupper(strData$PROPDMGEXP))
+strData$CROPDMGEXP<-as.factor(toupper(strData$CROPDMGEXP))
+```
+
+The exact worth of damages were calculated from the "H","K", "M", "B" values.
+
+```{r}
+index <- c("","+", "-", "0", "1", "2", "3", "4", "5", "6", "7", "8", "?", "H", "K", "M", "B")
+values <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,100, 1000, 1000000, 1000000000)
+strData$compensation <- values[match(strData$PROPDMGEXP, index)]
+strData$compensationCrop <- values[match(strData$CROPDMGEXP, index)]
+
+strData$propertyDamage<- (strData$PROPDMG*strData$compensation)/1000000
+strData$cropDamage<- (strData$CROPDMG*strData$compensationCrop)/1000000
+
+```
+
+The top ten conditions of each type were found after aggregating the total values of each conditions.
+
+```{r}
+# Human - Fatality
+setFatality <- aggregate(strData$FATALITIES, list(strData$EVTYPE), sum)
+valFatality <- setFatality[order(setFatality$x, decreasing = TRUE),]
+valFatality <- valFatality[1:10,]
+
+# Human - Injury
+setInjury <- aggregate(strData$INJURIES, list(strData$EVTYPE), sum)
+valInjury <- setInjury[order(setInjury$x, decreasing = TRUE),]
+valInjury <- valInjury[1:10,]
+
+# Economy - Property
+setProperty <- aggregate(strData$propertyDamage, list(strData$EVTYPE), sum)
+valProperty <- setProperty[order(setProperty$x, decreasing = TRUE),]
+valProperty <- valProperty[1:10,]
+
+# Economy - Crop
+setCrop <- aggregate(strData$cropDamage, list(strData$EVTYPE), sum)
+valCrop <- setCrop[order(setCrop$x, decreasing = TRUE),]
+valCrop <- valCrop[1:10,]
+
+```
+
+The graphs were drawn. 
+
+```{r}
+p1 <- ggplot(valFatality) +
+    geom_point(aes(y = valFatality$x, x = valFatality$Group.1), color = "Red") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    labs(title = "Top 10 deadliest events in terms of ") +
+    xlab("Event") +
+    ylab("Fatalities")
+
+p2 <- ggplot(valInjury) +
+    geom_point(aes(y = valInjury$x, x = valInjury$Group.1), color = "Blue") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+    xlab("Event") +
+    ylab("Injuries")+ 
+    labs(title = "human Health")
+
+p3 <- ggplot(valProperty) +
+    geom_point(aes(y = valProperty$x, x = valProperty$Group.1), color = "Red") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    labs(title = "Top 10 deadliest events in terms ") +
+    xlab("Event") +
+    ylab("Property Damages in millions USD")
+
+p4 <- ggplot(valCrop) +
+    geom_point(aes(y = valCrop$x, x = valCrop$Group.1), color = "Blue") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+    xlab("Event") +
+    ylab("Crop Damages in millions USD")+ 
+    labs(title = "of economy consequences ")
+
+
+```
+
+## results
+
+```{r}
+
+library(gridExtra)
+grid.arrange(p1, p2, ncol = 2)
+
+grid.arrange(p3, p4, ncol = 2)
+
+```
