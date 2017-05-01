@@ -1,0 +1,166 @@
+---
+title: "Predicting Activity"
+author: "Thiloshon Nagarajah"
+date: "4/30/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preparing Data
+
+The data was read to the workspace and initial exploratory analysis was done.
+
+```{r}
+library(lattice)
+library(ggplot2)
+library(randomForest)
+library(caret)
+set.seed(123)
+
+train.raw <- read.csv("pml-training.csv")
+```
+
+Lets see the basic structure of variables using `str(train.raw)` and `dims`.
+
+```{r}
+dim(train.raw)
+```
+
+From the structure we can see the initial few variables such as timestamps are factors. Lets remove those as its not needed. 
+
+```{r}
+
+train.less<-train.raw[,8:160]
+
+```
+
+Now lets take a look at the data itself using `head(train.raw)`. 
+
+
+Here we can see many variables having high amount of NAs. Lets remove these zero variance predictors.
+
+```{r}
+train.sansZeroVar <- train.less[, -c(nearZeroVar(train.less))]
+```
+
+This brings down variable counts to 100 from 160 which will help in speeding up the ML algorithms.
+
+## Exploratory Analysis
+
+The data was subsetted as test and train first.
+
+```{r}
+inTrain <- createDataPartition(y=train.sansZeroVar$classe, p=0.70, list=FALSE)
+train  <- train.sansZeroVar[inTrain,]
+train.classe<-train[,94]
+train<-train[,1:93]
+test  <- train.sansZeroVar[-inTrain,]
+```
+
+Lets then find the correlated variables with classe. 
+
+```{r}
+train.classe.numeric<-as.numeric(train.classe)
+correlation <-cor(train ,train.classe.numeric)
+head(correlation)
+```
+
+If you see the correlation table most of the correlations are NAs. This is because those coloumns have NA values in some rows. But these variables have more than 50% NAs. So lets remove these variables. We can do certain other procedures like imputing data or cleaning NA rows, etc. But since we have high number of variables lets remove these NA variables and check how accurate our model can be. If its not accurate, we can think of ways to make use of these variates.
+
+```{r }
+train.sansNAs<-train[,which(!is.na(correlation) )]
+train.final<- train.sansNAs
+```
+
+This reduces the variables to 58. Now lets train data.
+
+## Training
+
+Before selecting a training model, lets take a look at the correlation table.
+
+```{r}
+# ordering the correlations
+correlationOrder<-order(abs(correlation), na.last = NA, decreasing = T)
+
+# creating a table of correlations
+correlationTable<-data.frame(variables=names(train)[correlationOrder], correlation = correlation[correlationOrder])
+
+head(correlationTable)
+```
+
+If you take a look, all variables are very weakly correlated with the outcome variable. Even the highest correlation is not more than 3.6. So we need to weight the weak variables and combine to get an accurate prediction model. And also by using correaltion graph (see Appendix) we can see many variates are highly correlated with each other. We need to exclude these correlation and also reduce features by PCA. So, lets use PCA as preProcess and RandomForest as the base model. 
+
+```{r randomForest, cache=TRUE}
+randomForest<-train(train.final,train.classe, method="rf", preProcess="pca")
+```
+
+## Model Analysis
+
+Now lets analyse the error measures.
+
+```{r}
+randomForest
+```
+
+The model has an in sample accuracy of 96%. That is good considering the number of variates we truncated. Lets find out of sample accuracy too.
+
+```{r }
+test.sub<-test[,c(colnames(train.final))]
+predictions <- predict(randomForest, newdata=test.sub)
+confusion_matrix <- confusionMatrix(predictions, test$classe)
+confusion_matrix
+```
+
+Here the out of sample accuracy is 97%. This shows the model was considerably accurate.
+
+## Coursera Answer
+
+```{r }
+test.Coursera <- read.csv("pml-testing.csv")
+test.Coursera<-test.Coursera[,c(colnames(train.final))]
+predictions <- predict(randomForest, newdata=test.Coursera)
+predictions
+```
+
+
+## Appendix
+
+The final datasets used:
+
+```{r }
+library(gridExtra)
+library(grid)
+
+DataSets<- data.frame(FinalDataset = c("train.final", "test.sub", "test.Coursera"),NumberOfObservations = c(nrow(train.final), nrow(test.sub), nrow(test.Coursera)), NumberOfVariates = c(ncol(train.final), ncol(test.sub), ncol(test.Coursera)))
+grid.table(DataSets, theme=ttheme_minimal())
+```
+
+
+
+
+The correlation graph for the final training data.
+```{r }
+library(corrplot)
+correlation.all <-cor(train.final)
+corrplot(correlation.all, method="color", type="lower", order="hclust", tl.cex=0.70, tl.col="black", tl.srt = 45, diag = FALSE, na.label = "square")
+```
+
+
+The Accuracy graph for out of sample.
+
+```{r }
+results <- data.frame(Prediction = predict(randomForest, test.sub), Observation = test$classe)
+p <- ggplot(results, aes(x = Prediction, y = Observation))
+p <- p + geom_jitter(position = position_jitter(width = 0.25, height = 0.25))
+p
+
+```
+
+Randonmly selected Predictors
+
+```{r }
+plot(randomForest)
+```
